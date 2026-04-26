@@ -145,6 +145,28 @@ class Options:
     image_path: Optional[str] = None
     depth_path: Optional[str] = None
 
+    ### DPO post-training
+    # JSONL file or directory containing preference pairs
+    dpo_preference_path: Optional[str] = None
+    # optional root used to resolve relative chosen/rejected trajectory paths
+    dpo_data_root: Optional[str] = None
+    # frozen reference checkpoint; defaults to --resume
+    dpo_reference: Optional[str] = None
+    # DPO inverse temperature / pairwise margin scale
+    dpo_beta: float = 0.1
+    # optional supervised NLL regularizer on preferred trajectories
+    dpo_sft_weight: float = 0.0
+    # skip pairs whose chosen score is not higher by this margin when scores exist
+    dpo_score_margin: float = 0.0
+    # cap loaded preference pairs for debugging or small ablations
+    dpo_max_pairs: int = 0
+    # sum matches sequence-level DPO; mean is useful when pair lengths differ
+    dpo_logprob_reduction: Literal['sum', 'mean'] = 'sum'
+    # flexible JSONL field names
+    dpo_prompt_key: str = 'prompt'
+    dpo_chosen_key: str = 'chosen'
+    dpo_rejected_key: str = 'rejected'
+
     
 # all the default settings
 config_defaults: Dict[str, Options] = {}

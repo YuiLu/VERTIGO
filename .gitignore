@@ -26,6 +26,7 @@ workspace
 *.sh
 !scripts/
 !scripts/train_shot_origin_global.sh
+!scripts/train_dpo.sh
 evaluate/CLaTr/CLaTr_checkpoints
 evaluate/CLaTr/output
 evaluate/CLaTr/results

@@ -240,7 +240,7 @@ class LMM(nn.Module):
         return results
 
 
-    def forward(self, data, step_ratio=1):
+    def forward(self, data, step_ratio=1, compute_loss=True):
 
         results = {}
 
@@ -269,7 +269,7 @@ class LMM(nn.Module):
         results_cond = self.encode_cond(conds) # [B, N, C]
         cond_embeds = results_cond['cond_embeds']
         anchor_pred = None
-        if self.opt.use_anchor_head:
+        if compute_loss and self.opt.use_anchor_head:
             anchor_pred = self.predict_anchor(cond_embeds)
 
         # encode tokens
@@ -284,17 +284,18 @@ class LMM(nn.Module):
         # call decoder
         kwargs = {
             'inputs_embeds': inputs_embeds,
-            'labels': labels,
+            'labels': labels if compute_loss else None,
             'attention_mask': masks,
             'num_tokens': num_tokens,
         }
 
         outputs = self.mesh_decoder(**kwargs)
 
-        results['loss_ce'] = outputs.loss
         loss = outputs.loss
+        if compute_loss:
+            results['loss_ce'] = outputs.loss
 
-        if self.opt.use_anchor_head:
+        if compute_loss and self.opt.use_anchor_head:
             anchor_target = data['anchor_t0'].to(device=anchor_pred.device, dtype=torch.float32)
             anchor_pred_float = anchor_pred.float()
             loss_anchor = F.smooth_l1_loss(anchor_pred_float, anchor_target)
@@ -325,7 +326,8 @@ class LMM(nn.Module):
                 results['loss_anchor_screen'] = loss_anchor_screen
             results['anchor_pred'] = anchor_pred
        
-        results['loss'] = loss
+        if compute_loss:
+            results['loss'] = loss
         results['logits'] = outputs.logits # [B, 1+C+M+1, V]
 
         return results

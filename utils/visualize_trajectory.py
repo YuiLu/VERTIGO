@@ -232,11 +232,34 @@ def visualize_trajectory(c2ws: np.ndarray, vfovs: np.ndarray, vis_path: Path, ti
 
     colors = plt.cm.rainbow(np.linspace(0, 1, num_frames))
 
-    min_vals = np.min(positions, axis=0)
-    max_vals = np.max(positions, axis=0)
+    bounds_points = [positions, np.zeros((1, 3), dtype=positions.dtype)]
+    base_points = np.concatenate(bounds_points, axis=0)
+    base_min = np.min(base_points, axis=0)
+    base_max = np.max(base_points, axis=0)
+    base_span = np.maximum(base_max - base_min, 1e-6)
+    base_range = max(float(np.max(base_span)) * 0.6, 0.3)
+    scene_size = max(float(np.linalg.norm(base_span)), base_range * 2.0, 0.6)
+
+    frustum_indices: List[int] = []
+    fr_scale = scene_size * float(frustum_scale)
+    if draw_frustums:
+        step = max(1, num_frames // max(1, frustum_count))
+        frustum_indices = list(range(0, num_frames, step))
+        if frustum_indices[-1] != num_frames - 1:
+            frustum_indices.append(num_frames - 1)
+        frustum_vertices = [
+            create_frustum(c2ws[i], fov=float(vfovs[i]), scale=fr_scale)
+            for i in frustum_indices
+        ]
+        if frustum_vertices:
+            bounds_points.extend(frustum_vertices)
+
+    all_bounds = np.concatenate(bounds_points, axis=0)
+    min_vals = np.min(all_bounds, axis=0)
+    max_vals = np.max(all_bounds, axis=0)
     center = (min_vals + max_vals) / 2.0
     span = np.maximum(max_vals - min_vals, 1e-6)
-    max_range = max(float(np.max(span)) * 0.8, 0.3)
+    max_range = max(float(np.max(span)) * 0.6, 0.3)
 
     fig = plt.figure(figsize=(12, 10), dpi=120)
     ax = fig.add_subplot(111, projection="3d")
@@ -250,18 +273,17 @@ def visualize_trajectory(c2ws: np.ndarray, vfovs: np.ndarray, vis_path: Path, ti
             linewidth=1.8,
         )
 
-    ax.scatter(positions[0, 0], positions[0, 2], -positions[0, 1], c="green", s=80, marker="o", label="Start")
+    start_end_same = np.linalg.norm(positions[-1] - positions[0]) < 1e-6
+    if start_end_same:
+        ax.scatter(positions[0, 0], positions[0, 2], -positions[0, 1], facecolors="none", edgecolors="green", linewidths=2.5, s=170, marker="o", label="Start")
+    else:
+        ax.scatter(positions[0, 0], positions[0, 2], -positions[0, 1], c="green", s=80, marker="o", label="Start")
     ax.scatter(positions[-1, 0], positions[-1, 2], -positions[-1, 1], c="red", s=80, marker="o", label="End")
     ax.scatter([0], [0], [0], color="black", s=90, marker="x", label="Origin")
 
     if draw_frustums:
-        step = max(1, num_frames // max(1, frustum_count))
-        scene_size = max(np.linalg.norm(span), 1e-3)
-        fr_scale = scene_size * float(frustum_scale)
-        for i in range(0, num_frames, step):
+        for i in frustum_indices:
             draw_frustum_on_axis(ax, c2ws[i], fov=float(vfovs[i]), scale=fr_scale, color=colors[i], alpha=0.65)
-        if (num_frames - 1) % step != 0:
-            draw_frustum_on_axis(ax, c2ws[-1], fov=float(vfovs[-1]), scale=fr_scale, color=colors[-1], alpha=0.8)
 
     # Axis helper
     axis_len = max_range * 0.25
