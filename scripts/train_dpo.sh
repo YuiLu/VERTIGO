@@ -32,7 +32,7 @@ cd "${ROOT_DIR}"
 cmd=(
   accelerate launch
   --config_file acc_configs/gpu2.yaml
-  train_dpo.py ArAE
+  core/train_dpo.py ArAE
   --workspace "${WORKSPACE}"
   --exp-name "${EXP_NAME}"
   --resume "${POLICY_CKPT}"
