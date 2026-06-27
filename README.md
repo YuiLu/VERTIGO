@@ -1,7 +1,9 @@
 # VERTIGO: Visual Preference Optimization for Cinematic Camera Trajectory Generation
 
 <p align="center">
-  <a href="http://vertigo.magic-lab.tech/"><img src="https://img.shields.io/badge/Project-Website-red"></a>
+  <a href="https://vertigo.magic-lab.tech/"><img src="https://img.shields.io/badge/Project%20Page-Website-red?style=for-the-badge&logo=githubpages&logoColor=white" alt="Project Page"></a>
+  <a href="https://arxiv.org/abs/2506.21356"><img src="https://img.shields.io/badge/Paper-arXiv-b31b1b?style=for-the-badge&logo=arxiv&logoColor=white" alt="Paper"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue?style=for-the-badge&logo=apache&logoColor=white" alt="License"></a>
 </p>
 
 <p align="center">
@@ -16,7 +18,7 @@ This repository currently contains trajectory-generator training, inference, and
 
 - Initial cleanup for the VERTIGO open-source codebase.
 - Training and inference code for the autoregressive trajectory generator is available.
-- DPO post-training code is available through `train_dpo.py`.
+- DPO post-training code is available through `core/train_dpo.py`.
 - VLM scoring utilities are reserved for the upcoming release.
 
 ## Install
@@ -60,7 +62,7 @@ For text-only training, each caption JSON should contain the key used by `--text
 Text-to-trajectory training:
 
 ```bash
-accelerate launch --config_file acc_configs/gpu2.yaml main.py ArAE \
+accelerate launch --config_file acc_configs/gpu2.yaml core/main.py ArAE \
   --workspace workspace \
   --exp-name vertigo_text \
   --cond-mode text \
@@ -88,7 +90,7 @@ bash scripts/train_shot_origin_global.sh
 RGBD-conditioned training is still supported by the model:
 
 ```bash
-accelerate launch --config_file acc_configs/gpu2.yaml main.py ArAE \
+accelerate launch --config_file acc_configs/gpu2.yaml core/main.py ArAE \
   --workspace workspace \
   --exp-name vertigo_rgbd \
   --cond-mode depth+image+text \
@@ -102,7 +104,7 @@ accelerate launch --config_file acc_configs/gpu2.yaml main.py ArAE \
 Single prompt inference:
 
 ```bash
-python eval.py ArAE \
+python core/eval.py ArAE \
   --workspace outputs \
   --name demo/push_in_medium_shot \
   --resume checkpoints/vertigo_text.safetensors \
@@ -114,7 +116,7 @@ python eval.py ArAE \
 Batch inference from a dataset-style folder:
 
 ```bash
-python infer.py ArAE \
+python core/infer.py ArAE \
   --workspace outputs \
   --resume checkpoints/vertigo_text.safetensors \
   --cond-mode text \
@@ -144,7 +146,7 @@ Preference data is a JSONL file with one pair per line:
 Minimal command:
 
 ```bash
-accelerate launch --config_file acc_configs/gpu2.yaml train_dpo.py ArAE \
+accelerate launch --config_file acc_configs/gpu2.yaml core/train_dpo.py ArAE \
   --workspace workspace \
   --exp-name vertigo_dpo \
   --resume checkpoints/vertigo_text.safetensors \

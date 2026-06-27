@@ -68,7 +68,7 @@ echo "[INFO] CAMERA_ANCHOR_SCALE=${CAMERA_ANCHOR_SCALE[*]}"
 accelerate_cmd=(
   accelerate launch
   --config_file acc_configs/gpu2.yaml
-  main.py ArAE
+  core/main.py ArAE
   --workspace "${WORKSPACE}"
   --exp-name "${EXP_NAME}"
   --cond-mode text
